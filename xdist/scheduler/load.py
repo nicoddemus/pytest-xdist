@@ -149,8 +149,12 @@ class LoadScheduling:
 
         This is called by the ``DSession.slave_testreport`` hook.
         """
-        self.node2pending[node].remove(item_index)
-        self.check_schedule(node, duration=duration)
+        try:
+            self.node2pending[node].remove(item_index)
+            self.check_schedule(node, duration=duration)
+        except ValueError:
+            pass
+
 
     def check_schedule(self, node, duration=0):
         """Maybe schedule new items on the node

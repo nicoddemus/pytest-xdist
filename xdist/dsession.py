@@ -42,6 +42,7 @@ class DSession:
         self.maxfail = config.getvalue("maxfail")
         self.queue = queue.Queue()
         self._session = None
+        self._test_statuses = {}
         self._failed_collection_errors = {}
         self._active_nodes = set()
         self._failed_nodes_count = 0
@@ -235,7 +236,10 @@ class DSession:
         If the node indicates it is finished with a test item, remove
         the item from the pending list in the scheduler.
         """
-        if rep.when == "call" or (rep.when == "setup" and not rep.passed):
+        self._test_statuses.setdefault(rep.nodeid, []).append((rep.when, rep.passed))
+        status = self._test_statuses[rep.nodeid]
+        done = [x[0] for x in status] == ['setup', 'call', 'teardown'] or any(not x[1] for x in status)
+        if done:
             self.sched.mark_test_complete(node, rep.item_index, rep.duration)
         # self.report_line("testreport %s: %s" %(rep.id, rep.status))
         rep.node = node
